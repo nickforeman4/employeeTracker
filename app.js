@@ -14,23 +14,23 @@ connection.connect(function (error) {
     if (error) {
         console.log("Error connecting to database.", error)
     } else {
-        displayTable()
+        displayTracker()
     }
 });
 
-function displayTable() {
+function displayTracker() {
     inquirer.prompt([
         {
             type: "list",
-            message: "Choose an option.",
+            message: "Choose an option:",
             name: "userInput",
             choices: [
                 "Add Department",
                 "Add Role",
                 "Add Employee",
-                "Display Department",
-                "Display Role",
-                "Display Employee",
+                "View Departments",
+                "View Roles",
+                "View Employees",
                 "Update Employee Role",
                 "Exit Application"
             ],
@@ -46,41 +46,41 @@ function displayTable() {
             case "Add Employee":
                 addEmployee();
                 break;
-            case "Display Department":
-                displayDepartment();
+            case "View Departments":
+                viewDepartments();
                 break;
-            case "Display Role":
-                displayRole();
+            case "View Roles":
+                viewRoles();
                 break;
-            case "Display Employee":
-                displayEmployee();
+            case "View Employees":
+                viewEmployees();
                 break;
             case "Update Employee Role":
                 updateEmployeeRole();
                 break;
             default: connection.end();
-            process.exit(0);
+                process.exit(0);
         }
     })
 };
 
 function addDepartment() {
-    inquirer.prompt([ {
+    inquirer.prompt([{
         type: "input",
-        message: "Enter Department ID",
+        message: "Enter Department",
         name: "departmentName",
-    }]) .then(function(response) {
-        connection.query("INSERT INTO department (name) values (?);", response.departmentName, function(error, result) {
+    }]).then(function (response) {
+        connection.query("INSERT INTO department (name) values (?);", response.departmentName, function (error, result) {
             if (error) throw error
             console.log("departmentAdded")
-            displayTable()
+            displayTracker()
         })
     })
 };
 
 function addRole() {
-    inquirer.prompt([ 
-        {   
+    inquirer.prompt([
+        {
             type: "input",
             message: "Enter Title",
             name: "title",
@@ -95,20 +95,20 @@ function addRole() {
             message: "Enter Department ID",
             name: "department_id",
             choices: [
-                1, 2
+                1, 2, 3, 4, 5, 6
             ]
         }
-]) .then(function(response) {
-        connection.query("INSERT INTO role (title, salary, department_id) values (?, ?, ?);", [response.title, response.salary, response.department_id], function(error, result) {
+    ]).then(function (response) {
+        connection.query("INSERT INTO role (title, salary, department_id) values (?, ?, ?);", [response.title, response.salary, response.department_id], function (error, result) {
             if (error) throw error
             console.log("roleAdded")
-            displayTable()
+            displayTracker()
         })
     })
 };
 
 function addEmployee() {
-    inquirer.prompt([ 
+    inquirer.prompt([
         {
             type: "input",
             message: "Enter First Name",
@@ -124,7 +124,7 @@ function addEmployee() {
             message: "Enter Role ID",
             name: "role_id",
             choices: [
-                3, 4
+                1, 1.1, 2, 2.1, 3, 3.1, 4, 4.1, 5, 5.1, 6, 6.1
             ]
         },
         {
@@ -132,38 +132,82 @@ function addEmployee() {
             message: "Enter Manager ID",
             name: "manager_id",
             choices: [
-                1, 2
+                1, 2, 3, 4, 5, 6
             ]
         }
-]) .then(function(response) {
-        connection.query("INSERT INTO employee (first_name, last_name, role_id, manager_id) values (?, ?, ?, ?);", [response.first_name, response.last_name, response.role_id, response.manager_id], function(error, result) {
+    ]).then(function (response) {
+        connection.query("INSERT INTO employee (first_name, last_name, role_id, manager_id) values (?, ?, ?, ?);", [response.first_name, response.last_name, response.role_id, response.manager_id], function (error, result) {
             if (error) throw error
             console.log("employeeAdded")
-            displayTable()
+            displayTracker()
         })
     })
 };
 
-function displayDepartment() {
-    connection.query("SELECT * FROM department;", function(error, result) {
+function viewDepartments() {
+    connection.query("SELECT * FROM department;", function (error, result) {
         if (error) throw error
         console.table(result)
-        displayTable()
+        displayTracker()
     })
 };
 
-function displayRole() {
-    connection.query("SELECT * FROM role;", function(error, result) {
+function viewRoles() {
+    connection.query("SELECT * FROM role;", function (error, result) {
         if (error) throw error
         console.table(result)
-        displayTable()
+        displayTracker()
     })
 };
 
-function displayEmployee() {
-    connection.query("SELECT * FROM employee;", function(error, result) {
+function viewEmployees() {
+    connection.query("SELECT * FROM employee;", function (error, result) {
         if (error) throw error
         console.table(result)
-        displayTable()
+        displayTracker()
     })
+};
+
+function updateEmployeeRole() {
+    connection.query("SELECT * FROM employee", function (err, results) {
+        if (err) throw err;
+        inquirer.prompt([
+            {
+                name: "choice",
+                type: "rawlist",
+                choices: function () {
+                    var employeeArray = [];
+                    for (var i = 0; i < results.length; i++) {
+                        employeeArray.push(results[i].first_name + " " + results[i].last_name);
+                    }
+                    return employeeArray;
+                },
+                message: "Which employee role would you like to update?",
+            },
+            {
+                name: "roleUpdate",
+                type: "input",
+                message: 'What is the new Role ID?',
+                choices: [
+                    1, 1.1, 2, 2.1, 3, 3.1, 4, 4.1, 5, 5.1, 6, 6.1
+                ]
+            },
+        ])
+            .then(function (response) {
+                //get the information of the chosen item
+                var chosenItem;
+                for (var i = 0; i < results.length; i++) {
+                    if ((results[i].first_name, results[i].last_name) === response.choice) {
+                        chosenItem = results[i];
+                    }
+                }
+                connection.query(
+                    "UPDATE employee SET ? WHERE ?", function (error) {
+                        if (error) throw err;
+                        console.log("Employee role has been updated successfully.");
+                        displayTracker();
+                    }
+                );
+            });
+    });
 };

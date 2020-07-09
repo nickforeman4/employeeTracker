@@ -1,3 +1,5 @@
+DROP DATABASE IF EXISTS employeeTracker;
+
 CREATE DATABASE employeeTracker;
 
 USE employeeTracker;
@@ -17,5 +19,5 @@ CREATE TABLE employee (
 	id INT PRIMARY KEY AUTO_INCREMENT,
     first_name VARCHAR (30),
     last_name VARCHAR (30),
-    role_id INT,
+    role_id INT (2),
     manager_id INT, FOREIGN KEY (role_id) REFERENCES role(id));
